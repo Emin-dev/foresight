@@ -138,8 +138,18 @@ function beginTurn() {
 }
 
 function showView(view) {
-  document.getElementById('select-view').hidden = view !== 'select';
-  document.getElementById('mission-view').hidden = view !== 'mission';
+  const apply = () => {
+    document.getElementById('select-view').hidden = view !== 'select';
+    document.getElementById('mission-view').hidden = view !== 'mission';
+  };
+  // Progressive enhancement only: if the browser supports the View
+  // Transitions API, use it for a subtle cross-fade between screens. Falls
+  // back to an instant swap everywhere else — no behavior change either way.
+  if (typeof document.startViewTransition === 'function') {
+    document.startViewTransition(apply);
+  } else {
+    apply();
+  }
 }
 
 function backToSelect() {
@@ -481,11 +491,13 @@ function wireCheckout() {
 
     const submitBtn = document.getElementById('checkout-submit');
     submitBtn.disabled = true;
+    submitBtn.classList.add('is-loading');
     resultEl.textContent = 'Processing (sandbox)…';
     resultEl.className = 'checkout-result';
 
     const outcome = await submitSandboxPayment({ number });
     submitBtn.disabled = false;
+    submitBtn.classList.remove('is-loading');
 
     if (outcome.ok) {
       markUnlocked();
