@@ -1,0 +1,231 @@
+<title>Foresight — a fully deterministic grid tactics game</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Foresight: a small, fully deterministic grid-tactics game. Every enemy telegraphs its exact next move before you act, and resolution always matches exactly what was shown. Free first island, one-time unlock for the rest." />
+<link rel="stylesheet" href="style.css" />
+
+<header class="site-header">
+  <a href="index.html" class="brand"><span class="logo-dot"></span> Foresight</a>
+  <nav class="top-nav">
+    <a href="#play">Play</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#honesty">Why this exists</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>Every enemy shows you its move before it happens. Losses are planning failures, not bad luck.</h1>
+    <p class="tagline">
+      Foresight is a small grid-tactics game in the vein of <em>Into the Breach</em>: at the start
+      of every turn, each enemy's exact next action — where it will step, what it will hit, for
+      how much — is telegraphed on the board <strong>before</strong> you move. Then you act, and
+      resolution plays out <strong>exactly</strong> as shown. No hidden rolls, no fudged AI, no
+      lies between the telegraph and the outcome.
+    </p>
+    <div class="hero-cta">
+      <a href="#play" class="btn btn-primary">Play now</a>
+      <a href="#honesty" class="btn btn-secondary">Read the honest framing</a>
+    </div>
+  </section>
+
+  <section id="honesty">
+    <h2>Honest scope — read this first</h2>
+    <div class="callout callout-gap">
+      <span class="callout-title">This is a craft bet, not a revenue plan</span>
+      <p>
+        Market research for this concept scored it low — <strong>2/10</strong>. The evidence cited
+        in favor of a deterministic tactics game was <em>Into the Breach</em>'s critical acclaim
+        and sales, but that evidence belongs to a critically-acclaimed studio with press
+        relationships and Steam's discovery algorithm behind it. None of that transfers to an
+        unbranded clone with no storefront and no press — the research explicitly named this a
+        <strong>reference-class fallacy</strong>: borrowing a comparable's success numbers for a
+        product that shares only the mechanic, not the distribution.
+      </p>
+      <p style="margin-bottom:0">
+        Foresight is built anyway, as a <strong>craft and genre-diversity bet</strong> for this
+        catalog — this is the first grid-tactics game shipped so far, and the determinism-proof
+        architecture (see below) was worth building and testing for its own sake. Go in expecting
+        a small, honestly-scoped tactics puzzle, not the next <em>Into the Breach</em>.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The determinism promise — verify it yourself</h2>
+    <div class="card">
+      <p style="margin-bottom:0">
+        <code>js/enemies.js</code>'s <code>computeIntent()</code> is a pure function of the current
+        board: same input, same output, every time — no randomness, no hidden state.
+        <code>js/run.js</code>'s <code>startTurn()</code> calls it <strong>before</strong> you act,
+        so what you see on the board is locked in. <code>resolveTurn()</code> then executes those
+        exact captured intents against the board <em>after</em> your move — never recomputed
+        against your new position. Read both files directly: there is no branch anywhere that
+        recalculates an enemy's plan once it's been shown to you.
+      </p>
+    </div>
+  </section>
+
+  <section id="play">
+    <h2>Play</h2>
+    <div class="card">
+      <div id="select-view">
+        <div id="select-screen"><!-- rendered by js/main.js --></div>
+      </div>
+
+      <div id="mission-view" hidden>
+        <div class="mission-header">
+          <button class="btn btn-secondary btn-sm" id="back-to-select-btn" type="button">&larr; All missions</button>
+          <div>
+            <h3 id="mission-title" style="margin:0;"></h3>
+            <p class="mission-blurb-text" id="mission-blurb"></p>
+          </div>
+          <span class="turn-badge" id="mission-turn"></span>
+        </div>
+
+        <div class="mission-layout">
+          <div class="board-col">
+            <div id="board" class="board"><!-- rendered by js/main.js --></div>
+            <div class="legend">
+              <span><span class="legend-swatch telegraph-move-swatch"></span> enemy will move here</span>
+              <span><span class="legend-swatch telegraph-attack-swatch"></span> enemy will strike here</span>
+              <span><span class="legend-swatch actionable-swatch"></span> your unit's available action</span>
+            </div>
+          </div>
+          <div class="side-col">
+            <h4>Enemy intents this turn</h4>
+            <div id="intent-log" class="intent-log"></div>
+
+            <h4>Your units</h4>
+            <div id="unit-panel" class="unit-panel"></div>
+            <p class="unit-help" id="unit-help"></p>
+
+            <div class="turn-controls">
+              <button class="btn btn-secondary" id="hold-unit-btn" type="button">Hold selected unit</button>
+              <button class="btn btn-primary btn-block" id="confirm-turn-btn" type="button">Confirm turn</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Units &amp; enemies</h2>
+    <div class="card">
+      <table class="tier-table">
+        <thead><tr><th>Unit</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>■ Bulwark</td><td>Slow, sturdy blocker. Holds a tile enemies can't pass through or occupy. Deals no damage.</td></tr>
+          <tr><td>▲ Ram</td><td>Pushes an adjacent enemy back one tile — if the push is blocked, the enemy takes damage instead.</td></tr>
+          <tr><td>● Striker</td><td>Direct damage in a straight line, up to 3 tiles, if nothing blocks the line.</td></tr>
+          <tr><td>✦ Crawler</td><td>Always advances toward the nearest objective, then attacks whatever tile it ends up facing.</td></tr>
+          <tr><td>◆ Brute</td><td>Fixed facing direction. Always attacks the tile directly ahead, advancing into it first if empty.</td></tr>
+          <tr><td>✱ Spitter</td><td>Never moves. Fires down its row/column at the nearest aligned objective — anything standing in the way is hit instead.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <h2>Pricing (BUY — one-time, not a subscription)</h2>
+    <div class="card pricing-card">
+      <div>Reedshore</div>
+      <div class="price-line">Free — 5 missions</div>
+      <p style="color:var(--ink-soft); font-size:0.88rem;">The full game engine, gentle introduction to every unit and enemy type.</p>
+      <hr style="border:none; border-top:1px solid var(--line); margin:18px 0;" />
+      <div>Stonemarch + Windkeep unlock</div>
+      <div class="price-line" id="price-display">$4.99<span class="per"> one-time</span></div>
+      <div class="pricing-features">
+        <ul>
+          <li>10 more missions across two islands, harder combinations of every enemy type</li>
+          <li>Same real deterministic engine — no ads, no timers, no subscription</li>
+          <li>One-time purchase — yours forever in this browser</li>
+        </ul>
+      </div>
+      <button class="btn btn-primary btn-block" id="open-checkout-btn" type="button">Unlock Stonemarch &amp; Windkeep (sandbox)</button>
+      <p id="already-unlocked-note" class="unlocked-banner" hidden>
+        Already unlocked in this browser (sandbox) — Stonemarch and Windkeep are selectable above.
+      </p>
+      <p style="font-size:0.78rem; color:var(--ink-soft); margin-top:10px;">
+        This is a sandbox demo only — no real payment provider is connected and no real card is
+        ever charged. The button above simulates a one-time purchase so you can see the full
+        unlock flow.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Repo &amp; tests</h2>
+    <div class="card">
+      <p>Zero dependencies, no build step, no server-side logic. Every game rule is pure logic
+      covered by real Node tests, including two full scripted mission playthroughs (one win, one
+      loss) that assert the exact resulting board state:</p>
+      <pre><code>node test/board.test.mjs
+node test/enemies.test.mjs
+node test/units.test.mjs
+node test/run.test.mjs
+node test/checkout.test.mjs</code></pre>
+      <p>15 missions across 3 islands (6x6 grid throughout), every one confirmed winnable ahead of
+      time by exhaustive or large-scale randomized search against the real engine — not just
+      assumed.</p>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Foresight — a small, honestly-scoped deterministic tactics game. Built as a craft and
+  genre-diversity bet for this catalog, not a revenue plan.
+</footer>
+
+<div id="checkout-overlay" class="modal-overlay" hidden>
+  <div class="modal">
+    <button class="modal-close" id="checkout-close" type="button">Close</button>
+    <h3>Unlock Stonemarch &amp; Windkeep <span class="demo-badge-inline">SANDBOX</span></h3>
+    <div class="sandbox-notice">
+      SANDBOX PAYMENT — for demo purposes. No real payment provider is connected, no real card is
+      ever charged.
+    </div>
+    <p id="checkout-price" style="font-weight:600;"></p>
+    <form id="checkout-form">
+      <div class="field">
+        <label for="card-number">Card number</label>
+        <input id="card-number" type="text" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="off" />
+        <div class="field-error" id="error-number"></div>
+      </div>
+      <div class="field-row">
+        <div class="field" style="flex:1;">
+          <label for="card-expiry">Expiry (MM/YY)</label>
+          <input id="card-expiry" type="text" placeholder="12/29" autocomplete="off" />
+          <div class="field-error" id="error-expiry"></div>
+        </div>
+        <div class="field" style="flex:1;">
+          <label for="card-cvc">CVC</label>
+          <input id="card-cvc" type="text" inputmode="numeric" placeholder="123" autocomplete="off" />
+          <div class="field-error" id="error-cvc"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" id="checkout-submit" type="submit">Unlock (sandbox)</button>
+      <p style="font-size:0.76rem; color:var(--ink-soft); margin-top:10px;">
+        Decline test card: <code id="decline-card-hint"></code>
+      </p>
+      <div class="checkout-result" id="checkout-result"></div>
+    </form>
+  </div>
+</div>
+
+<div id="outcome-overlay" class="modal-overlay outcome-overlay" hidden>
+  <div class="modal outcome-modal">
+    <h3 id="outcome-title"></h3>
+    <p id="outcome-message"></p>
+    <div class="outcome-actions">
+      <button class="btn btn-primary" id="outcome-retry-btn" type="button">Retry immediately</button>
+      <button class="btn btn-secondary" id="outcome-next-btn" type="button" hidden>Next mission</button>
+      <button class="btn btn-secondary" id="outcome-exit-btn" type="button">All missions</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
